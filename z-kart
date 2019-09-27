@@ -58,8 +58,25 @@ public class ZkartApplication {
 
     static ArrayList<String> historyList = new ArrayList<String>();
 
+    static boolean checkPWMail(String mailId) throws IOException
+    {
+        File file = new File("/home/local/ZOHOCORP/paramesh-9374/Desktop/zusers_db.txt");
+        FileReader historyFR = new FileReader(file);
+        BufferedReader historyBR = new BufferedReader(historyFR);
+        String userDetails;
+        while((userDetails=historyBR.readLine())!=null)
+        {
+            String[] splitStr = userDetails.split(",");
+            if(splitStr[0].equals(mailId))
+            {
+                return true;
+            }
+        }
+        return false;
+
+    }
+
     static void stockReduce(String model) throws IOException {
-        System.out.println("Hello2");
         File file = new File("/home/local/ZOHOCORP/paramesh-9374/Desktop/z-kart_db.txt");
         FileReader stockFR = new FileReader(file);
         BufferedReader stockBR = new BufferedReader(stockFR);
@@ -177,8 +194,6 @@ public class ZkartApplication {
         BufferedWriter disBW = new BufferedWriter(disFW);
         FileReader disFR = new FileReader(file);
         BufferedReader disBR = new BufferedReader(disFR);
-
-//        stockReduce(disBR);
 
         if(file.length()==0)
         {
@@ -464,6 +479,14 @@ public class ZkartApplication {
             userBW.newLine();
             userBW.close();
             userFW.close();
+
+            File file1 = new File("/home/local/ZOHOCORP/paramesh-9374/Desktop/password_history.txt");
+            FileWriter historyFW = new FileWriter(file1,true);
+            BufferedWriter historyBW = new BufferedWriter(historyFW);
+            historyBW.write(newUserobj.mailId+","+newUserobj.password);
+            historyBW.close();
+            historyFW.close();
+
         }
         else
         {
@@ -541,7 +564,7 @@ public class ZkartApplication {
         Scanner sc = new Scanner(System.in);
         while(true)
         {
-            System.out.println("1.Signup , 2.Signin , 3.Admin , 4.Exit");
+            System.out.println("1.Signup , 2.Signin , 3.Admin , 4.Exit , 5.Change Password");
             int choice = sc.nextInt();
             if(choice == 4)
             {
@@ -619,9 +642,27 @@ public class ZkartApplication {
                     }
                     break;
                 }
+                case 5:
+                {
+                    ExistingUser checkPWHistory = new ExistingUser();
+                    System.out.print("Mail Id : ");
+                    checkPWHistory.mailId = sc.next();
+                    if(checkPWMail(checkPWHistory.mailId))
+                    {
+                        System.out.print("Password : ");
+                        checkPWHistory.password = sc.next();
+
+                        System.out.println("Your mail id is existed.");
+                    }
+                    else
+                    {
+                        System.out.println("Your mail Id not existed.");
+                    }
+                }
             }
         }
     }
 
 }
+
 
