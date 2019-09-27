@@ -1,0 +1,627 @@
+package newPackage;
+
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Random;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Scanner;
+import java.util.Date;
+
+class NewUser {
+
+    String mailId;
+    String name;
+    String mobileNo;
+    String password;
+    String retypePassword;
+
+}
+
+class ExistingUser {
+
+    String mailId;
+    String password;
+
+}
+
+class StockDetails {
+
+    String category;
+    String brand;
+    String model;
+    String price;
+    String stock;
+
+}
+
+class Purchase {
+
+    String email;
+    String brand;
+    String model;
+    String amount;
+    String count;
+
+}
+
+public class ZkartApplication {
+    static String highStockStr;
+    static String purModel;
+
+    static ArrayList<String> historyList = new ArrayList<String>();
+
+    static void stockReduce(String model) throws IOException {
+        System.out.println("Hello2");
+        File file = new File("/home/local/ZOHOCORP/paramesh-9374/Desktop/z-kart_db.txt");
+        FileReader stockFR = new FileReader(file);
+        BufferedReader stockBR = new BufferedReader(stockFR);
+        FileWriter stockFW = new FileWriter(file,true);
+        BufferedWriter stockBW = new BufferedWriter(stockFW);
+
+        String itr;
+        ArrayList<String> stockList = new ArrayList<String>();
+        String[] stockDetails = new String[5];
+        while((itr=stockBR.readLine())!=null)
+        {
+            stockDetails = itr.split(",");
+            if(stockDetails[2].equals(model))
+            {
+                int stockCount = Integer.parseInt(stockDetails[4]);
+                stockCount = stockCount - 1;
+                if(stockCount>0)
+                {
+                    stockDetails[4] = String.valueOf(stockCount);
+                    stockList.add(stockDetails[0]+","+stockDetails[1]+","+stockDetails[2]+","+stockDetails[3]+","+stockDetails[4]);
+                }
+            }
+            else
+            {
+                stockList.add(stockDetails[0]+","+stockDetails[1]+","+stockDetails[2]+","+stockDetails[3]+","+stockDetails[4]);
+            }
+
+        }
+
+        FileWriter stockFW1 = new FileWriter(file,false);
+        PrintWriter stockPW = new PrintWriter(stockFW1,false);
+        stockPW.flush();
+        stockFW1.close();
+        stockPW.close();
+
+        Iterator<String> itr1 = stockList.iterator();
+        while(itr1.hasNext())
+        {
+            String tempstr1 = itr1.next();
+            stockBW.write(tempstr1);
+            stockBW.newLine();
+        }
+
+        BufferedReader stockBR1 = new BufferedReader(stockFR);
+        String stockRITR;
+        while((stockRITR=stockBR1.readLine())!=null)
+        {
+            System.out.println(stockRITR);
+        }
+
+        stockBW.close();
+        stockFW.close();
+        stockFR.close();
+        stockBR.close();
+        stockBR1.close();
+
+    }
+
+    static void displayHistory()
+    {
+        Iterator<String> itr=historyList.iterator();
+        while(itr.hasNext()){
+            String tempstr1 = itr.next();
+            System.out.println(tempstr1);
+        }
+    }
+
+    static String dateGenerator()
+    {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        Date date = new Date();
+        return dateFormat.format(date); //2016/11/16 12:08:43
+    }
+
+    static String generateInvoice()
+    {
+        int invoidceInt;
+        while(true)
+        {
+            Random invoiceGenerator = new Random();
+            invoidceInt = invoiceGenerator.nextInt(999999);
+            if(invoidceInt>=100000)
+            {
+                break;
+            }
+        }
+        return String.valueOf(invoidceInt);
+
+    }
+
+    static int randomDicount()
+    {
+        int randomInt;
+        while(true)
+        {
+            Random randomGenerator = new Random();
+            randomInt = randomGenerator.nextInt(30) + 1;
+            if(randomInt>=20)
+            {
+                break;
+            }
+        }
+        return randomInt;
+    }
+
+    static void userDiscount(Purchase purObj) throws IOException
+    {
+
+        stockReduce(purObj.model);
+
+        String tempDetails;
+        ArrayList<String> list = new ArrayList<String>();
+        File file = new File("/home/local/ZOHOCORP/paramesh-9374/Desktop/user_discount.txt");
+        FileWriter disFW = new FileWriter(file,true);
+        BufferedWriter disBW = new BufferedWriter(disFW);
+        FileReader disFR = new FileReader(file);
+        BufferedReader disBR = new BufferedReader(disFR);
+
+//        stockReduce(disBR);
+
+        if(file.length()==0)
+        {
+            System.out.println("Empty");
+            if(Integer.parseInt(purObj.amount)>=20000||Integer.parseInt(purObj.count)>=3)
+            {
+                int discountpercent = randomDicount();
+                int amount = Integer.parseInt(purObj.amount);
+                amount = amount/100;
+                amount = amount*discountpercent;
+                purObj.amount = String.valueOf(amount);
+            }
+            String temp = purObj.email+","+purObj.amount+","+purObj.count;
+            String invoice = generateInvoice();
+            String date = dateGenerator();
+            historyList.add("Invoice : "+invoice+", Date : "+date+", Brand : "+purObj.brand+", Model : "+purObj.model+", Amount : "+purObj.amount);
+            disBW.write(temp);
+            disBW.close();
+            disFW.close();
+            disFR.close();
+            disBR.close();
+
+        }
+
+        else
+        {
+            System.out.println("Not Empty.");
+            String temp;
+            String[] content = new String[3];
+            while((temp=disBR.readLine())!=null)
+            {
+                content = temp.split(",");
+                if((purObj.email).equals(content[0]))
+                {
+                    String invoice = generateInvoice();
+                    String date = dateGenerator();
+                    historyList.add("Invoice : "+invoice+", Date : "+date+", Brand : "+purObj.brand+", Model : "+purObj.model+", Amount : "+purObj.amount);
+                    int disAmount = Integer.parseInt(purObj.amount)+Integer.parseInt(content[1]);
+                    int disCount = Integer.parseInt(purObj.count)+Integer.parseInt(content[2]);
+                    if(disAmount>=20000||disCount>=3)
+                    {
+                        int discountpercent = randomDicount();
+                        disAmount = disAmount/100;
+                        disAmount = disAmount*discountpercent;
+                    }
+                    purObj.amount = String.valueOf(disAmount);
+                    purObj.count = String.valueOf(disCount);
+                    String tempstr = purObj.email+","+purObj.amount+","+purObj.count;
+                    list.add(tempstr);
+                }
+                else
+                {
+                    String invoice = generateInvoice();
+                    String date = dateGenerator();
+                    historyList.add("Invoice : "+invoice+", Date : "+date+", Brand : "+purObj.brand+", Model : "+purObj.model+", Amount : "+purObj.amount);
+                    String tempstr = content[0]+","+content[1]+","+content[2];
+                    list.add(tempstr);
+                }
+            }
+
+            FileWriter disFW1 = new FileWriter(file,false);
+            PrintWriter disPW = new PrintWriter(disFW1,false);
+            disPW.flush();
+            disFW1.close();
+            disPW.close();
+
+            Iterator<String> itr=list.iterator();
+            while(itr.hasNext()){
+                String tempstr1 = itr.next();
+                disBW.write(tempstr1);
+                disBW.newLine();
+            }
+
+            disBW.close();
+            disFW.close();
+            disFR.close();
+            disBR.close();
+
+        }
+
+
+    }
+
+    static void purchaseAmount(Purchase purobj) throws IOException
+    {
+        FileReader purFR = new FileReader("/home/local/ZOHOCORP/paramesh-9374/Desktop/z-kart_db.txt");
+        BufferedReader purBR = new BufferedReader(purFR);
+        String content;
+        String[] contentSplit=new String[5];
+        while((content=purBR.readLine())!=null)
+        {
+            contentSplit = content.split(",");
+            if((purobj.model).equals(contentSplit[2]))
+            {
+                purobj.amount = contentSplit[3];
+            }
+        }
+        if(purobj.model == highStockStr)
+        {
+            int amount = Integer.parseInt(purobj.amount);
+            amount = (amount/100)*10;
+            purobj.amount = String.valueOf(amount);
+        }
+        purBR.close();
+        purFR.close();
+    }
+
+    static void purchase(String userEmail) throws IOException
+    {
+        Scanner sc = new Scanner(System.in);
+        Purchase purobj = new Purchase();
+        purobj.email = userEmail;
+        System.out.print("Brand : ");
+        purobj.brand = sc.next();
+        System.out.print("Model : ");
+        purobj.model = sc.next();
+        purobj.count="1";
+        purchaseAmount(purobj);
+        userDiscount(purobj);
+
+    }
+
+    static void showStock() throws IOException
+    {
+        FileReader stockFR = new FileReader("/home/local/ZOHOCORP/paramesh-9374/Desktop/z-kart_db.txt");
+        BufferedReader stockBR = new BufferedReader(stockFR);
+        String stockDetails;
+        while((stockDetails=stockBR.readLine())!=null)
+        {
+            System.out.println(stockDetails);
+        }
+        stockBR.close();
+        stockFR.close();
+    }
+
+    static void purchaseStock(String userEmail) throws IOException
+    {
+        Scanner sc = new Scanner(System.in);
+        int choice;
+        while(true)
+        {
+            System.out.println("1.Purchase 2.Exit");
+            choice = sc.nextInt();
+            if(choice==2)
+            {
+                break;
+            }
+            switch(choice)
+            {
+                case 1:
+                {
+                    showStock();
+                    purchase(userEmail);
+                    break;
+                }
+            }
+        }
+    }
+
+    static void highestStock() throws IOException
+    {
+        int max = Integer.MIN_VALUE,value;
+        FileReader stockFR = new FileReader("/home/local/ZOHOCORP/paramesh-9374/Desktop/z-kart_db.txt");
+        BufferedReader stockBR = new BufferedReader(stockFR);
+        String stockDetails;
+        String[] content = new String[5];
+        while((stockDetails=stockBR.readLine())!=null)
+        {
+            content = stockDetails.split(",");
+            value = Integer.parseInt(content[4]);
+            if(value > max)
+            {
+                max = value;
+                highStockStr = content[2];
+            }
+        }
+    }
+
+    static void adminBlock() throws IOException
+    {
+        Scanner sc = new Scanner(System.in);
+        StockDetails adminObj = new StockDetails();
+        System.out.print("Category : ");
+        adminObj.category = sc.next();
+        System.out.print("Brand : ");
+        adminObj.brand = sc.next();
+        System.out.print("Model : ");
+        adminObj.model = sc.next();
+        System.out.print("Price : ");
+        adminObj.price = sc.next();
+        System.out.print("Stock : ");
+        adminObj.stock = sc.next();
+        FileWriter adminFW = new FileWriter("/home/local/ZOHOCORP/paramesh-9374/Desktop/z-kart_db.txt",true);
+        BufferedWriter adminBW = new BufferedWriter(adminFW);
+        adminBW.write(adminObj.category+","+adminObj.brand+","+adminObj.model+","+adminObj.price+","+adminObj.stock);
+        adminBW.newLine();
+        adminBW.close();
+    }
+
+    static boolean checkAdmin(ExistingUser adminObj)
+    {
+        if((adminObj.mailId).equals("admin@zoho.com") && adminObj.password.equals("xyzzy"))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    static String stringDecrepted(String encreptedstr)
+    {
+        String decreptedstr="";
+        for(int itr = 0; itr < encreptedstr.length(); itr++)
+        {
+            char temp = encreptedstr.charAt(itr);
+            temp -= 1;
+            decreptedstr += temp;
+        }
+        return decreptedstr;
+    }
+
+    static boolean checkUser(ExistingUser existObj) throws IOException
+    {
+        FileReader userFR = new FileReader("/home/local/ZOHOCORP/paramesh-9374/Desktop/zusers_db.txt");
+        BufferedReader userBR = new BufferedReader(userFR);
+        String details,decreptedstr;
+        String[] content = new String[4];
+        while((details=userBR.readLine())!=null)
+        {
+            content = details.split(",");
+            if(content.length!=0)
+            {
+                decreptedstr = stringDecrepted(content[1]);
+                if((existObj.mailId).equals(content[0]) && (existObj.password).equals(decreptedstr))
+                {
+                    return true;
+                }
+            }
+
+        }
+        return false;
+    }
+
+    static boolean checkAlreadyExist(NewUser newUserobj) throws IOException
+    {
+        File file = new File("/home/local/ZOHOCORP/paramesh-9374/Desktop/zusers_db.txt");
+        if(file.length()==0)
+        {
+            return true;
+        }
+        else
+        {
+            FileReader userFR = new FileReader(file);
+            BufferedReader userBR = new BufferedReader(userFR);
+            String userDetails;
+            while((userDetails = userBR.readLine())!=null)
+            {
+                String[] splitStr = userDetails.split(",");
+                if(newUserobj.mailId.equals(splitStr[0]))
+                {
+                    userBR.close();
+                    userFR.close();
+                    return false;
+                }
+            }
+            userBR.close();
+            userFR.close();
+            return true;
+        }
+    }
+
+    static void insertFile(NewUser newUserobj) throws IOException
+    {
+        if(checkAlreadyExist(newUserobj))
+        {
+            System.out.println("Success.");
+            File file = new File("/home/local/ZOHOCORP/paramesh-9374/Desktop/zusers_db.txt");
+            FileWriter userFW = new FileWriter(file,true);
+            BufferedWriter userBW = new BufferedWriter(userFW);
+            userBW.write(newUserobj.mailId+","+newUserobj.password+","+newUserobj.name+","+newUserobj.mobileNo);
+            userBW.newLine();
+            userBW.close();
+            userFW.close();
+        }
+        else
+        {
+            System.out.println("This mailid already existing.");
+        }
+
+    }
+
+
+
+    static String stringEncrepted(String userPassword)
+    {
+        String newUserPassWord="";
+        for(int itr = 0; itr < userPassword.length(); itr++)
+        {
+            char temp = userPassword.charAt(itr);
+            temp += 1;
+            newUserPassWord += temp;
+        }
+        return newUserPassWord;
+    }
+
+    static boolean passwordComplexity(String userPassword)
+    {
+        if(userPassword.length() >= 6)
+        {
+            int upper, lower, number;
+            upper = lower = number=0;
+            for(int itr = 0; itr < userPassword.length(); itr++)
+            {
+                if(userPassword.charAt(itr) >= 'a' && userPassword.charAt(itr) <= 'z')
+                {
+                    lower++;
+                }
+                else if(userPassword.charAt(itr) >= 'A' && userPassword.charAt(itr) <= 'Z')
+                {
+                    upper++;
+                }
+                else if(userPassword.charAt(itr) >= '0' && userPassword.charAt(itr) <='9')
+                {
+                    number++;
+                }
+            }
+            if(upper >= 2 && lower >= 2 && number >= 2)
+            {
+                return true;
+            }
+
+            return false;
+        }
+        return false;
+    }
+
+    static boolean newuser(NewUser newUserObj)
+    {
+
+        if(!(newUserObj.password.equals(newUserObj.retypePassword)))
+        {
+            return false;
+        }
+        else
+        {
+            if(passwordComplexity(newUserObj.password))
+            {
+                System.out.println("correct password.");
+                String encreptedstr = stringEncrepted(newUserObj.password);
+                newUserObj.password = encreptedstr;
+                return true;
+            }
+            return false;
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        Scanner sc = new Scanner(System.in);
+        while(true)
+        {
+            System.out.println("1.Signup , 2.Signin , 3.Admin , 4.Exit");
+            int choice = sc.nextInt();
+            if(choice == 4)
+            {
+                break;
+            }
+            switch(choice)
+            {
+                case 1:
+                {
+                    NewUser newUserObj = new NewUser();
+                    System.out.print("Email id : ");
+                    newUserObj.mailId = sc.next();
+                    System.out.print("Name : ");
+                    newUserObj.name = sc.next();
+                    System.out.print("Mobile Number : ");
+                    newUserObj.mobileNo = sc.next();
+                    System.out.print("Password : ");
+                    newUserObj.password = sc.next();
+                    System.out.print("Re-type Password : ");
+                    newUserObj.retypePassword = sc.next();
+                    if(newuser(newUserObj))
+                    {
+                        insertFile(newUserObj);
+                    }
+                    else
+                    {
+                        System.out.println("Enter valid password.");
+                    }
+                    break;
+                }
+                case 2:
+                {
+                    ExistingUser existObj = new ExistingUser();
+                    System.out.print("Email Id : ");
+                    existObj.mailId = sc.next();
+                    System.out.print("Password : ");
+                    existObj.password = sc.next();
+                    if((checkUser(existObj)))
+                    {
+                        highestStock();
+                        System.out.println("High : "+highStockStr);
+                        purchaseStock(existObj.mailId);
+                        System.out.println("1.History 2.Exit");
+                        int userChoice;
+                        userChoice = sc.nextInt();
+                        if(userChoice==1)
+                        {
+                            displayHistory();
+                        }
+                        else
+                        {
+                            historyList.clear();
+                        }
+                    }
+                    else
+                    {
+                        System.out.println("Not Existing account.");
+                    }
+                    break;
+                }
+                case 3:
+                {
+                    ExistingUser adminObj = new ExistingUser();
+                    System.out.print("Email Id : ");
+                    adminObj.mailId = sc.next();
+                    System.out.print("Password : ");
+                    adminObj.password = sc.next();
+                    if(checkAdmin(adminObj))
+                    {
+                        adminBlock();
+                    }
+                    else
+                    {
+                        System.out.println("Your not a Admin.");
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+}
+
